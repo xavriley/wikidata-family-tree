@@ -1,8 +1,8 @@
 require 'json'
-require 'rest_client'
 require 'sinatra'
 require 'rack/cache'
 require 'dalli'
+require 'typhoeus'
 
 if memcache_servers = ENV["MEMCACHE_SERVERS"] 
   use Rack::Cache,
@@ -19,17 +19,35 @@ end
 use Rack::Deflater
 set :static_cache_control, [:public, max_age: 60 * 60 * 24 * 365]
 
+class HydraCache
+  def initialize
+    @client = Dalli::Client.new
+  end
+
+  def get(request)
+    @client.get(request.cache_key)
+  end
+
+  def set(request, response)
+    @client.set(request.cache_key, response)
+  end
+end
+
+Typhoeus::Config.cache = HydraCache.new
+
 before do
-  @max_nodes = 150
+  @max_nodes = 500
   @use_wiki_mobile = true
   @nodes = {}
   @edges = []
+  @hydra = Typhoeus::Hydra.new
 end
 
 def extract_relations(person)
   output = {}
   output[:ids] = []
   output[:rels] = []
+  return output unless person[:claims]
 
   person[:claims].each do |property, val|
     val.each do |v|
@@ -103,6 +121,7 @@ def parse_person(e)
   wikidata_url = "https://tools.wmflabs.org/reasonator/?q=Q#{item_id}"
 
   output = {item_id: item_id, name: name, descriptions: descriptions, claims: claims, wikipedia_url: wikipedia_url, wikidata_url: wikidata_url}
+  return output unless claims
 
   claims.each do |property, v|
     v = v.first
@@ -123,9 +142,19 @@ def parse_person(e)
   output
 end
 
+def extract_entity_json(body)
+  JSON.parse(body)["entities"]
+end
+
+def queue_get_person(q_num)
+  request = Typhoeus::Request.new("http://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q#{q_num}&languages=en&format=json")
+  @hydra.queue(request)
+  request
+end
+
 def get_person(q_num)
-  response = RestClient.get("http://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q#{q_num}&languages=en&format=json").to_str
-  JSON.parse(response)["entities"]
+  body = Typhoeus::Request.get("http://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q#{q_num}&languages=en&format=json").body
+  extract_entity_json(body)
 end
 
 def node_colour_for_person(person)
@@ -151,8 +180,9 @@ def transform_wikidata_to_sigma_node(person)
 end
 
 def lucky_search_for_term(term)
-  response = RestClient.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&search=#{term}&format=json&language=en&type=item&continue=0").to_str
-  JSON.parse(response)["search"].first["id"].gsub(/\D+/, '')
+  body = Typhoeus::Request.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&search=#{URI.encode(term)}&format=json&language=en&type=item&continue=0").body
+  search_data = JSON.parse(body)["search"]
+  search_data.first["id"].gsub(/\D+/, '')
 rescue
   nil
 end
@@ -171,12 +201,15 @@ get '/json/:id' do
 
   while(@nodes.length < @max_nodes && @nodes.any? {|k,v| v.nil? } ) do
     STDERR.puts "#{@nodes.length} people found"
-    @nodes.select {|k,v| v.nil? }.each do |empty_person|
+    people_requests = @nodes.select {|k,v| v.nil? }.map do |empty_person|
       id = empty_person.first # returns array of [1234, nil]
-      p = get_person(id)
-      p = parse_person(p)
-      STDERR.puts "Fetched #{p[:name]}"
+      queue_get_person(id)
+    end
 
+    @hydra.run
+
+    people_requests.map {|r| extract_entity_json(r.response.body) }.each do |p|
+      p = parse_person(p)
       @nodes.merge!(p[:item_id] => p)
       rels = extract_relations(p)
 
