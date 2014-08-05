@@ -34,7 +34,7 @@ class HydraCache
   end
 end
 
-Typhoeus::Config.cache = HydraCache.new(cache: @cache)
+Typhoeus::Config.cache = HydraCache.new(@cache)
 
 before do
   @max_nodes = 500
