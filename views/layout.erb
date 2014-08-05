@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wikidata: Family Trees</title>
+  <style>
+    h1, h2, h3, h4 {
+      font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+      font-weight: bold;
+    }
+    body {
+      font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+    }
+
+    #title {
+      z-index: 20;
+      position: absolute;
+      background: #fff;
+      background-color: rgba(255,255,255,0.8);
+      top: 5%;
+      left: 2%;
+      padding: 0.5% 1%;
+    }
+    
+    #examples {
+      z-index: 20;
+      position: absolute;
+      background: #fff;
+      background-color: rgba(255,255,255,0.8);
+      bottom: 5%;
+      left: 2%;
+      padding: 0.5% 1%;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      text-align: center;
+    }
+    ul li {
+      padding: 0 2px;
+      display: inline-block;
+    }
+    ul li a {
+      color: #111;
+      padding-right: 0.5em;
+      border-right: 1px solid #ccc;
+    }
+    ul li a.last {
+      padding-right: 0;
+      border-right: 0px solid #ccc;
+    }
+
+    #message {
+      position: absolute;
+      top: 50%;
+      text-align: center;
+      width: 100%;
+    }
+
+    #search { text-align: center; }
+    #search input { width: 65%; }
+
+    #graph-container {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 30%;
+      position: absolute;
+      background: #eee;
+    }
+
+    #info-panel {
+      position: fixed;
+      z-index: 20;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 30%;
+      border: 1px solid #ccc;
+      background: #fff;
+      background-color: rgba(255,255,255,0.8);
+    }
+  </style>
+
+  <!-- START SIGMA IMPORTS -->
+  <script src="/js/sigma.js/sigma.core.js"></script>
+  <script src="/js/sigma.js/conrad.js"></script>
+  <script src="/js/sigma.js/utils/sigma.utils.js"></script>
+  <script src="/js/sigma.js/utils/sigma.polyfills.js"></script>
+  <script src="/js/sigma.js/sigma.settings.js"></script>
+  <script src="/js/sigma.js/classes/sigma.classes.dispatcher.js"></script>
+  <script src="/js/sigma.js/classes/sigma.classes.configurable.js"></script>
+  <script src="/js/sigma.js/classes/sigma.classes.graph.js"></script>
+  <script src="/js/sigma.js/classes/sigma.classes.camera.js"></script>
+  <script src="/js/sigma.js/classes/sigma.classes.quad.js"></script>
+  <script src="/js/sigma.js/captors/sigma.captors.mouse.js"></script>
+  <script src="/js/sigma.js/captors/sigma.captors.touch.js"></script>
+  <script src="/js/sigma.js/renderers/sigma.renderers.canvas.js"></script>
+  <script src="/js/sigma.js/renderers/sigma.renderers.webgl.js"></script>
+  <script src="/js/sigma.js/renderers/sigma.renderers.def.js"></script>
+  <script src="/js/sigma.js/renderers/webgl/sigma.webgl.nodes.def.js"></script>
+  <script src="/js/sigma.js/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
+  <script src="/js/sigma.js/renderers/webgl/sigma.webgl.edges.def.js"></script>
+  <script src="/js/sigma.js/renderers/webgl/sigma.webgl.edges.fast.js"></script>
+  <script src="/js/sigma.js/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
+  <script src="/js/sigma.js/renderers/canvas/sigma.canvas.labels.def.js"></script>
+  <script src="/js/sigma.js/renderers/canvas/sigma.canvas.hovers.def.js"></script>
+  <script src="/js/sigma.js/renderers/canvas/sigma.canvas.nodes.def.js"></script>
+  <script src="/js/sigma.js/renderers/canvas/sigma.canvas.edges.def.js"></script>
+  <script src="/js/sigma.js/renderers/canvas/sigma.canvas.edges.curve.js"></script>
+  <script src="/js/sigma.js/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
+  <script src="/js/sigma.js/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
+  <script src="/js/sigma.js/middlewares/sigma.middlewares.rescale.js"></script>
+  <script src="/js/sigma.js/middlewares/sigma.middlewares.copy.js"></script>
+  <script src="/js/sigma.js/misc/sigma.misc.animation.js"></script>
+  <script src="/js/sigma.js/misc/sigma.misc.bindEvents.js"></script>
+  <script src="/js/sigma.js/misc/sigma.misc.drawHovers.js"></script>
+  <script>
+    function linkToAbout() {
+      document.getElementById('info-frame').src = '/about'
+    }
+
+    function linkToCredits() {
+      document.getElementById('info-frame').src = '/credits'
+    }
+  </script>
+  <!-- END SIGMA IMPORTS -->
+</head>
+<body>
+<%= yield %>
+</body>
+</html>

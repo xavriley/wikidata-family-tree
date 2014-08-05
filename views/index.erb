@@ -1,0 +1,82 @@
+<div id="container">
+  <div id="graph-container">
+    <% if @message %>
+      <h1 id="message"><%= @message %></h1>
+    <% end %>
+  </div>
+  <div id="title">
+    <h1>Wikidata: Family Trees</h1>
+    <ul>
+      <li><a href="javascript:linkToAbout();">about</a></li>
+      <li><a href="javascript:linkToCredits();" class="last">credits</a></li>
+    </ul>
+
+    <div id="search">
+      <form action="/search" method="post">
+        <input type="search" placeholder="Search Wikidata for people" name="id">
+        <button title="Search" value="go">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="examples">
+    <h3>Examples</h3>
+    <ul>
+      <li><a href="/family-tree/1339">JS Bach</a></li>
+      <li><a href="/family-tree/76">Barack Obama</a></li>
+      <li><a class="last" href="/family-tree/34201">Zeus</a></li>
+    </ul>
+    <p>Made by <a target="_blank" href="https://twitter.com/xavriley">@xavriley</a></p>
+    <p>Based on <a href="https://tools.wmflabs.org/magnus-toolserver/ts2/geneawiki/?q=Q1339">Geneawiki</a> by <a target="_blank" href="https://twitter.com/MagnusManske">@MagnusManske</a></p>
+  </div>
+
+  <div id="info-panel">
+    <iframe id="info-frame" src="/about" height="100%" width="100%" frameborder="0"></iframe>
+  </div>
+</div>
+<script src="/js/sigma.js/plugins/sigma.parsers.json/sigma.parsers.json.js"></script>
+<script src="/js/sigma.js/plugins/sigma.layout.forceAtlas2/worker.js"></script>
+<script src="/js/sigma.js/plugins/sigma.layout.forceAtlas2/supervisor.js"></script>
+<script src="/js/sigma.js/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
+<script>
+/**
+ * Just a simple example to show how to use the sigma.layout.forceAtlas2
+ * plugin:
+ *
+ * A random graph is generated, such that its nodes are separated in some
+ * distinct clusters. Each cluster has its own color, and the density of
+ * links is stronger inside the clusters. So, we expect the algorithm to
+ * regroup the nodes of each cluster.
+ */
+s = sigma.parsers.json('/json/<%= @id %>', {
+  container: 'graph-container',
+  settings: {
+    drawEdges: true,
+    drawLabels: true,
+    minNodeSize: 1,
+    maxNodeSize: 8,
+    batchEdgesDrawing: false,
+    labelThreshold: 4,
+    sideMargin: 10,
+    edgeColor: "default",
+    defaultEdgeColor: "#111"
+  }
+  }, function(s) {
+  s.bind('clickNode', function(e) {
+      document.getElementById('info-frame').src = e.data.node.wiki_url;
+    });
+
+  // Start the ForceAtlas2 algorithm:
+  s.startForceAtlas2({
+    slowDown: 1,
+    linLogMode: false,
+    adjustSizes: true,
+    strongGravityMode: true
+  });
+
+  setInterval(function() {
+    s.stopForceAtlas2();
+    //sigma.plugins.dragNodes(s, s.renderers[0]);
+  }, 10000);
+});
+</script>
