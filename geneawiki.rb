@@ -5,11 +5,11 @@ require 'dalli'
 require 'typhoeus'
 
 if memcachier_servers = ENV["MEMCACHIER_SERVERS"]
-  cache = Dalli::Client.new memcachier_servers.split(','), {
+  @cache = Dalli::Client.new memcachier_servers.split(','), {
     username: ENV['MEMCACHIER_USERNAME'],
     password: ENV['MEMCACHIER_PASSWORD']
   }
-  use Rack::Cache, verbose: true, metastore: cache, entitystore: cache
+  use Rack::Cache, verbose: true, metastore: @cache, entitystore: @cache
 elsif memcache_servers = ENV["MEMCACHE_SERVERS"] 
   use Rack::Cache,
     verbose: true,
@@ -20,8 +20,8 @@ use Rack::Deflater
 set :static_cache_control, [:public, max_age: 60 * 60 * 24 * 365]
 
 class HydraCache
-  def initialize
-    @client = Dalli::Client.new
+  def initialize(cache)
+    @client = cache || Dalli::Client.new
   end
 
   def get(request)
@@ -33,7 +33,7 @@ class HydraCache
   end
 end
 
-Typhoeus::Config.cache = HydraCache.new
+Typhoeus::Config.cache = HydraCache.new(cache: @cache)
 
 before do
   @max_nodes = 500
