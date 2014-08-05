@@ -4,17 +4,17 @@ require 'rack/cache'
 require 'dalli'
 require 'typhoeus'
 
-if memcache_servers = ENV["MEMCACHE_SERVERS"] 
-  use Rack::Cache,
-    verbose: true,
-    metastore:   "memcached://#{memcache_servers}",
-    entitystore: "memcached://#{memcache_servers}"
-elsif memcachier_servers = ENV["MEMCACHIER_SERVERS"]
+if memcachier_servers = ENV["MEMCACHIER_SERVERS"]
   cache = Dalli::Client.new memcachier_servers.split(','), {
     username: ENV['MEMCACHIER_USERNAME'],
     password: ENV['MEMCACHIER_PASSWORD']
   }
   use Rack::Cache, verbose: true, metastore: cache, entitystore: cache
+elsif memcache_servers = ENV["MEMCACHE_SERVERS"] 
+  use Rack::Cache,
+    verbose: true,
+    metastore:   "memcached://#{memcache_servers}",
+    entitystore: "memcached://#{memcache_servers}"
 end
 use Rack::Deflater
 set :static_cache_control, [:public, max_age: 60 * 60 * 24 * 365]
