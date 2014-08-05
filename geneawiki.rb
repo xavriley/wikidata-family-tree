@@ -5,10 +5,11 @@ require 'dalli'
 require 'typhoeus'
 
 if memcachier_servers = ENV["MEMCACHIER_SERVERS"]
-  @cache = Dalli::Client.new memcachier_servers.split(','), {
+  @cache = Dalli::Client.new(memcachier_servers.split(','), {
     username: ENV['MEMCACHIER_USERNAME'],
     password: ENV['MEMCACHIER_PASSWORD']
-  }
+  })
+  puts @cache.inspect
   use Rack::Cache, verbose: true, metastore: @cache, entitystore: @cache
 elsif memcache_servers = ENV["MEMCACHE_SERVERS"] 
   use Rack::Cache,
