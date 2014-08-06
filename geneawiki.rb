@@ -98,7 +98,13 @@ def extract_relations(person)
   end
 
   # Perform any cleanup here
-  output[:rels].each {|x| x.merge!(type: 'arrow') }
+  output[:rels].each {|x| 
+    if x[:label] =~ /spouse|husband|wife/i
+      x.merge!(type: 'curvedArrow', color: '#acc') 
+    else
+      x.merge!(type: 'arrow', color: '#bbb') 
+    end
+  }
 
   output
 end
@@ -180,6 +186,14 @@ def transform_wikidata_to_sigma_node(person)
   }
 end
 
+def add_circular_coords(person, index, no_of_nodes)
+  l = 10
+  person.merge({
+    circular_x: l * Math.cos(Math::PI * 2 * index / no_of_nodes - Math::PI / 2),
+    circular_y: l * Math.sin(Math::PI * 2 * index / no_of_nodes - Math::PI / 2),
+  })
+end
+
 def lucky_search_for_term(term)
   body = Typhoeus::Request.get("https://www.wikidata.org/w/api.php?action=wbsearchentities&search=#{URI.encode(term)}&format=json&language=en&type=item&continue=0").body
   search_data = JSON.parse(body)["search"]
@@ -222,10 +236,20 @@ get '/json/:id' do
   end
 
   edge_count_by_id = @edges.group_by {|x| x[:target] }.map {|k,v| {k => v.length } }.inject({}) {|v, acc| acc.merge v }
+  max_size = edge_count_by_id.values.max
+  min_size = edge_count_by_id.values.min
+  principal_node_size = ((max_size || 1) * 2) + 5
+
   sigma_nodes = @nodes.values.compact.map {|x| 
       transform_wikidata_to_sigma_node(x) 
     }.map {|x|
-      x.merge!(size: edge_count_by_id.fetch(x[:id], 1))
+      if x[:id] == params[:id]
+        x.merge!(size: principal_node_size)
+      else
+        x.merge!(size: edge_count_by_id.fetch(x[:id], min_size))
+      end
+    }.map.with_index {|x, i|
+      add_circular_coords(x, i, @nodes.length)
     }
 
   sigma_edges = @edges.delete_if {|s| @nodes[s[:source]].nil? || @nodes[s[:target]].nil? }.uniq

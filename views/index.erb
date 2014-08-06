@@ -53,13 +53,13 @@ s = sigma.parsers.json('/json/<%= @id %>', {
   settings: {
     drawEdges: true,
     drawLabels: true,
-    minNodeSize: 1,
-    maxNodeSize: 8,
-    batchEdgesDrawing: false,
-    labelThreshold: 4,
+    minNodeSize: 2,
+    maxNodeSize: 20,
+    batchEdgesDrawing: true,
+    labelThreshold: 18,
     sideMargin: 10,
     edgeColor: "default",
-    defaultEdgeColor: "#111"
+    defaultEdgeColor: "#bbb"
   }
   }, function(s) {
   s.bind('clickNode', function(e) {
@@ -68,7 +68,7 @@ s = sigma.parsers.json('/json/<%= @id %>', {
 
   // Start the ForceAtlas2 algorithm:
   s.startForceAtlas2({
-    slowDown: 1,
+    slowDown: 3,
     linLogMode: false,
     adjustSizes: true,
     strongGravityMode: true
@@ -76,7 +76,9 @@ s = sigma.parsers.json('/json/<%= @id %>', {
 
   setInterval(function() {
     s.stopForceAtlas2();
-    //sigma.plugins.dragNodes(s, s.renderers[0]);
   }, 10000);
+
+  //not compatible with WebGL
+  //sigma.plugins.dragNodes(s, s.renderers[0]);
 });
 </script>
