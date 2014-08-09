@@ -37,6 +37,7 @@
 <script src="/js/sigma.js/plugins/sigma.parsers.json/sigma.parsers.json.js"></script>
 <script src="/js/sigma.js/plugins/sigma.layout.forceAtlas2/worker.js"></script>
 <script src="/js/sigma.js/plugins/sigma.layout.forceAtlas2/supervisor.js"></script>
+<!-- script src="/js/sigma.js/plugins/sigma.plugins.animate/sigma.plugins.animate.js"></script -->
 <script src="/js/sigma.js/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
 <script>
 /**
@@ -48,6 +49,7 @@
  * links is stronger inside the clusters. So, we expect the algorithm to
  * regroup the nodes of each cluster.
  */
+sigma.renderers.def = sigma.renderers.canvas
 s = sigma.parsers.json('/json/<%= @id %>', {
   container: 'graph-container',
   settings: {
@@ -68,17 +70,28 @@ s = sigma.parsers.json('/json/<%= @id %>', {
 
   // Start the ForceAtlas2 algorithm:
   s.startForceAtlas2({
-    slowDown: 3,
+    //slowDown: 3,
     linLogMode: false,
     adjustSizes: true,
     strongGravityMode: true
   });
 
-  setInterval(function() {
-    s.stopForceAtlas2();
+  setTimeout(function() {
+    s.killForceAtlas2();
+
+    <%# sigma.plugins.animate( %>
+    <%#   s, %>
+    <%#     { %>
+    <%#       x: 'circular_x', %>
+    <%#       y: 'circular_y', %>
+    <%#       size: 'circular_size', %>
+    <%#       color: 'color' %>
+    <%#     } %>
+    <%#   ); %>
+
+    //not compatible with WebGL
+    sigma.plugins.dragNodes(s, s.renderers[0]);
   }, 10000);
 
-  //not compatible with WebGL
-  //sigma.plugins.dragNodes(s, s.renderers[0]);
 });
 </script>

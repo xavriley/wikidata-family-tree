@@ -191,6 +191,7 @@ def add_circular_coords(person, index, no_of_nodes)
   person.merge({
     circular_x: l * Math.cos(Math::PI * 2 * index / no_of_nodes - Math::PI / 2),
     circular_y: l * Math.sin(Math::PI * 2 * index / no_of_nodes - Math::PI / 2),
+    circular_size: 1
   })
 end
 
