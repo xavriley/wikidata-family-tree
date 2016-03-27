@@ -119,10 +119,11 @@ def parse_person(e)
   # Bit of a song and dance routine to get links to Wikipedia pages
   if raw["sitelinks"]
     if raw["sitelinks"]["enwiki"] # Prefer english wikipedia
-      wikipedia_url = "https://en.#{ @use_wiki_mobile ? 'm.' : '' }wikipedia.org/wiki/#{URI.encode(raw["sitelinks"]["enwiki"]["title"].gsub(" ", "_"))}"
+      wikipedia_url = "https://en.#{ @use_wiki_mobile ? 'm.' : '' }wikipedia.org/wiki/#{URI.encode(raw["sitelinks"]["enwiki"]["title"].to_s.gsub(" ", "_"))}"
     else
       site, data = *raw["sitelinks"].first
-      wikipedia_url = "https://#{site.gsub('wiki', '')}.#{ @use_wiki_mobile ? 'm.' : '' }wikipedia.org/wiki/#{URI.encode(data["title"].gsub(" ", "_"))}"
+      data ||= {}
+      wikipedia_url = "https://#{site.to_s.gsub('wiki', '')}.#{ @use_wiki_mobile ? 'm.' : '' }wikipedia.org/wiki/#{URI.encode(data["title"].to_s.gsub(" ", "_"))}"
     end
   end
   wikidata_url = "https://tools.wmflabs.org/reasonator/?q=Q#{item_id}"
@@ -154,13 +155,13 @@ def extract_entity_json(body)
 end
 
 def queue_get_person(q_num)
-  request = Typhoeus::Request.new("http://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q#{q_num}&languages=en&format=json")
+  request = Typhoeus::Request.new("https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q#{q_num}&languages=en&format=json")
   @hydra.queue(request)
   request
 end
 
 def get_person(q_num)
-  body = Typhoeus::Request.get("http://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q#{q_num}&languages=en&format=json").body
+  body = Typhoeus::Request.get("https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q#{q_num}&languages=en&format=json").body
   extract_entity_json(body)
 end
 
